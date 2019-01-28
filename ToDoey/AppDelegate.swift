@@ -2,7 +2,7 @@
 //  AppDelegate.swift
 //  ToDoey
 //
-//  Created by Hesham Khaked on 1/28/19.
+//  Created by Yasmine Ghazy on 1/28/19.
 //  Copyright © 2019 Yasmine Ghazy. All rights reserved.
 //
 
