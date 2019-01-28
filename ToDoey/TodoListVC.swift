@@ -11,7 +11,7 @@ import UIKit
 class TodoListVC: UIViewController {
 
     //MARK: - Properties
-    let itemArray = ["Buy egges", "clean clothes", "study swift"]
+    var itemArray = ["Buy egges", "clean clothes", "study swift"]
     
     //MARK: - IBOutlets
     @IBOutlet weak var tableView: UITableView!
@@ -29,8 +29,30 @@ class TodoListVC: UIViewController {
         self.tableView.dataSource = self
         self.tableView.tableFooterView = UIView()
     }
+    
+    //MARK: - IBActions
+    
 
-
+    @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
+        let alert = UIAlertController(title: "Add new toDoey item", message: "", preferredStyle: .alert)
+        
+        var textField = UITextField()
+        
+        let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
+            //What will happen once the user clicks the add button
+            let newItem = textField.text
+            self.itemArray.append(newItem!)
+            self.tableView.reloadData()
+        }
+        
+        alert.addTextField { (alertTextField) in
+            alertTextField.placeholder = "Create new item"
+            textField = alertTextField
+        }
+        alert.addAction(action)
+        self.present(alert, animated: true, completion: nil)
+    }
+    
 }
 
 //MARK: - Tableview Delegate and DataSource
