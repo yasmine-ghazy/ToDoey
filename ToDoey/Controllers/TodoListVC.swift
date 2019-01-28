@@ -11,7 +11,7 @@ import UIKit
 class TodoListVC: UIViewController {
 
     //MARK: - Properties
-    var itemArray = [String]()
+    var itemArray = [Item]()
     let defaults = UserDefaults()
     
     //MARK: - IBOutlets
@@ -34,9 +34,13 @@ class TodoListVC: UIViewController {
     
     func loadData(){
         
-        if let data = defaults.array(forKey: "TodoListArray") as? [String]{
+        if let data = defaults.array(forKey: "TodoList") as? [Item]{
             self.itemArray = data
         }
+    }
+    
+    func saveData(){
+        self.defaults.set(self.itemArray, forKey: "TodoList")
     }
     
     //MARK: - IBActions
@@ -49,9 +53,9 @@ class TodoListVC: UIViewController {
         
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
             //What will happen once the user clicks the add button
-            let newItem = textField.text
-            self.itemArray.append(newItem!)
-            self.defaults.set(self.itemArray, forKey: "TodoListArray")
+            let newItem = Item(title: textField.text ?? "")
+            self.itemArray.append(newItem)
+           // self.saveData()
             self.tableView.reloadData()
         }
         
@@ -73,21 +77,23 @@ extension TodoListVC: UITableViewDelegate, UITableViewDataSource{
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TodoItemCell", for: indexPath)
-        cell.textLabel?.text = itemArray[indexPath.row]
         
-        cell.accessoryType = .none
+        let item = itemArray[indexPath.row]
+        
+        cell.textLabel?.text = item.title
+        
+        cell.accessoryType = item.done ? .checkmark : .none
+       
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-
-        if tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark{
-             tableView.cellForRow(at: indexPath)?.accessoryType = .none
-        }else{
-            tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
-        }
         
-            tableView.deselectRow(at: indexPath, animated: true)
+        tableView.deselectRow(at: indexPath, animated: true)
+        itemArray[indexPath.row].done = !itemArray[indexPath.row].done
+        self.tableView.reloadData()
+        
+        //self.saveData()
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
