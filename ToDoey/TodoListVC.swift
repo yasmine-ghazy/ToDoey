@@ -11,7 +11,8 @@ import UIKit
 class TodoListVC: UIViewController {
 
     //MARK: - Properties
-    var itemArray = ["Buy egges", "clean clothes", "study swift"]
+    var itemArray = [String]()
+    let defaults = UserDefaults()
     
     //MARK: - IBOutlets
     @IBOutlet weak var tableView: UITableView!
@@ -21,6 +22,7 @@ class TodoListVC: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         self.setupTableView()
+        self.loadData()
     }
     
     //MARK: - Methods
@@ -28,6 +30,13 @@ class TodoListVC: UIViewController {
         self.tableView.delegate = self
         self.tableView.dataSource = self
         self.tableView.tableFooterView = UIView()
+    }
+    
+    func loadData(){
+        
+        if let data = defaults.array(forKey: "TodoListArray") as? [String]{
+            self.itemArray = data
+        }
     }
     
     //MARK: - IBActions
@@ -42,6 +51,7 @@ class TodoListVC: UIViewController {
             //What will happen once the user clicks the add button
             let newItem = textField.text
             self.itemArray.append(newItem!)
+            self.defaults.set(self.itemArray, forKey: "TodoListArray")
             self.tableView.reloadData()
         }
         
