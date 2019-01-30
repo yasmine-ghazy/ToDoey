@@ -14,6 +14,7 @@ class TodoListVC: UIViewController {
     var itemArray = [Item]()
     let defaults = UserDefaults()
     
+    
     //MARK: - IBOutlets
     @IBOutlet weak var tableView: UITableView!
     
@@ -34,17 +35,19 @@ class TodoListVC: UIViewController {
     
     func loadData(){
         
-        if let data = defaults.array(forKey: "TodoList") as? [Item]{
-            self.itemArray = data
-        }
+//        if let data = defaults.array(forKey: "TodoList") as? [Item]{
+//            self.itemArray = data
+//        }
+        
+        itemArray = DataHandler.loadItems()
     }
     
     func saveData(){
-        self.defaults.set(self.itemArray, forKey: "TodoList")
+        //self.defaults.set(self.itemArray, forKey: "TodoList")
+        DataHandler.saveItems(items: itemArray)
     }
     
     //MARK: - IBActions
-    
 
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         let alert = UIAlertController(title: "Add new toDoey item", message: "", preferredStyle: .alert)
@@ -55,7 +58,7 @@ class TodoListVC: UIViewController {
             //What will happen once the user clicks the add button
             let newItem = Item(title: textField.text ?? "")
             self.itemArray.append(newItem)
-           // self.saveData()
+            self.saveData()
             self.tableView.reloadData()
         }
         
@@ -93,7 +96,7 @@ extension TodoListVC: UITableViewDelegate, UITableViewDataSource{
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         self.tableView.reloadData()
         
-        //self.saveData()
+        self.saveData()
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
