@@ -35,16 +35,31 @@ class TodoListVC: UIViewController {
     
     func loadData(){
         
+        /**
+         Using User Defaults
+         */
 //        if let data = defaults.array(forKey: "TodoList") as? [Item]{
 //            self.itemArray = data
 //        }
         
+        /**
+         Using Coder Method
+         */
         itemArray = DataHandler.loadItems()
     }
     
     func saveData(){
+        
+        /**
+         Using User Defaults
+         */
         //self.defaults.set(self.itemArray, forKey: "TodoList")
+        
+        /**
+         Using Coder Method
+         */
         DataHandler.saveItems(items: itemArray)
+        
     }
     
     //MARK: - IBActions

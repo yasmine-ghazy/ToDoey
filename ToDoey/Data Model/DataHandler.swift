@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 
 class DataHandler{
     
@@ -48,3 +49,4 @@ class DataHandler{
     }
     
 }
+
