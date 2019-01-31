@@ -9,11 +9,10 @@
 import UIKit
 import CoreData
 
-class TodoListVC: UIViewController {
+class CategoryListVC: UIViewController {
     
     //MARK: - Properties
-    var itemArray = [Item]()
-    var category: Category?
+    var categoryArray = [Category]()
     let defaults = UserDefaults()
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
@@ -28,13 +27,10 @@ class TodoListVC: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
-        self.title = category?.name
         self.setupTableView()
         self.setupSearchBar()
         
-        
-        
-        self.loadItems(isFiltered: false)
+        self.loadCategories()
     }
     
     //MARK: - Methods
@@ -51,15 +47,10 @@ class TodoListVC: UIViewController {
     /**
      This method load items from Sqlite DB using CoreData.
      */
-    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest(), isFiltered: Bool){
-        
-        if !isFiltered{
-            let predicate = NSPredicate(format: "parentCategory.name MATCHES %@", (category?.name)!)
-            request.predicate = predicate
-        }
+    func loadCategories(with request: NSFetchRequest<Category> = Category.fetchRequest()){
         
         do{
-            itemArray = try context.fetch(request)
+            categoryArray = try context.fetch(request)
             
         }catch {
             print("Error fetching context! ", error)
@@ -72,7 +63,7 @@ class TodoListVC: UIViewController {
      This method save items to SQLite DB using CoreData.
      - Parameter items: A list of items to be saved.
      */
-    func saveItems(){
+    func saveCategories(){
         //Path for Sqlite DB.
         print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first) //library/ApplicationSupport
         do {
@@ -83,28 +74,34 @@ class TodoListVC: UIViewController {
         
     }
     
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "goToItems"{
+            let vc = segue.destination as! TodoListVC
+            let index = tableView.indexPathForSelectedRow?.row
+            vc.category = categoryArray[index!]
+        }
+    }
+    
     //MARK: - IBActions
     
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
-        let alert = UIAlertController(title: "Add new toDoey item", message: "", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Add new toDoey Category", message: "", preferredStyle: .alert)
         
         var textField = UITextField()
         
-        let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
+        let action = UIAlertAction(title: "Add Category", style: .default) { (action) in
             
             //What will happen once the user clicks the add button
-            let newItem = Item(context: self.context)
-            newItem.title = textField.text ?? ""
-            newItem.done = false
-            newItem.parentCategory = self.category
+            let newCategory = Category(context: self.context)
+            newCategory.name = textField.text!
             
-            self.itemArray.append(newItem)
-            self.saveItems()
+            self.categoryArray.append(newCategory)
+            self.saveCategories()
             self.tableView.reloadData()
         }
         
         alert.addTextField { (alertTextField) in
-            alertTextField.placeholder = "Create new item"
+            alertTextField.placeholder = "Create new category"
             textField = alertTextField
         }
         alert.addAction(action)
@@ -114,30 +111,19 @@ class TodoListVC: UIViewController {
 }
 
 //MARK: - Tableview Delegate and DataSource
-extension TodoListVC: UITableViewDelegate, UITableViewDataSource{
+extension CategoryListVC: UITableViewDelegate, UITableViewDataSource{
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return itemArray.count
+        return categoryArray.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "TodoItemCell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
         
-        let item = itemArray[indexPath.row]
+        let category = categoryArray[indexPath.row]
         
-        cell.textLabel?.text = item.title
-        
-        cell.accessoryType = item.done ? .checkmark : .none
-        
+        cell.textLabel?.text = category.name
+
         return cell
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-        tableView.deselectRow(at: indexPath, animated: true)
-        itemArray[indexPath.row].done = !itemArray[indexPath.row].done
-        self.tableView.reloadData()
-        
-        self.saveItems()
     }
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
@@ -149,14 +135,18 @@ extension TodoListVC: UITableViewDelegate, UITableViewDataSource{
             // handle delete (by removing the data from your array and updating the tableview)
             print("Deleted")
             
-            self.context.delete(self.itemArray[indexPath.row])
-            self.itemArray.remove(at: indexPath.row)
+            self.context.delete(self.categoryArray[indexPath.row])
+            self.categoryArray.remove(at: indexPath.row)
             self.tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
             self.tableView.reloadData()
-            self.saveItems()
+            self.saveCategories()
             
             
         }
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        self.performSegue(withIdentifier: "goToItems", sender: self)
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -166,33 +156,28 @@ extension TodoListVC: UITableViewDelegate, UITableViewDataSource{
 }
 
 //MARK: - UISearchBarDelegate Methods
-extension TodoListVC: UISearchBarDelegate{
+extension CategoryListVC: UISearchBarDelegate{
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        let request: NSFetchRequest<Item> = Item.fetchRequest()
+        let request: NSFetchRequest<Category> = Category.fetchRequest()
         /**
          In order to make a query we need NSPredicate, Predicate is basically a foundation class that specifies how data should be fetched or filtered.
          It's essentially a query language like some sort of mix bettween SQL Where clause and a regex (Regular expression)
          we add [cd] -> Non sensitive , non diaritics
          */
+        request.predicate = NSPredicate(format: "name CONTAINS[cd] %@", searchBar.text!)
         
-        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", (category?.name)!)
-        let itemsPredicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        request.sortDescriptors = [ NSSortDescriptor(key: "name", ascending: true) ]
         
-        let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, itemsPredicate])
-        
-        request.predicate = compoundPredicate
-        request.sortDescriptors = [ NSSortDescriptor(key: "title", ascending: true) ]
-        
-        self.loadItems(with: request, isFiltered: true)
+        self.loadCategories(with: request)
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         
         if searchBar.text?.count == 0{
-            self.loadItems(isFiltered: false)
+            self.loadCategories()
             
-            //In order to give a high periority to the search bar in the main thread 
+            //In order to give a high periority to the search bar in the main thread
             DispatchQueue.main.async {
                 self.searchBar.resignFirstResponder()
             }
@@ -201,3 +186,4 @@ extension TodoListVC: UISearchBarDelegate{
     }
     
 }
+

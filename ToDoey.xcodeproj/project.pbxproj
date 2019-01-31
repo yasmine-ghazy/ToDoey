@@ -12,8 +12,8 @@
 		5426B30121FF5A0C001C0758 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5426B2FF21FF5A0C001C0758 /* Main.storyboard */; };
 		5426B30321FF5A0C001C0758 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5426B30221FF5A0C001C0758 /* Assets.xcassets */; };
 		5426B30621FF5A0C001C0758 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5426B30421FF5A0C001C0758 /* LaunchScreen.storyboard */; };
-		54C39E7B21FF964400C77483 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C39E7A21FF964400C77483 /* Item.swift */; };
-		54C39E7F21FFA61A00C77483 /* DataHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C39E7E21FFA61A00C77483 /* DataHandler.swift */; };
+		547651BD220352F600E46FA2 /* DataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 547651BB220352F600E46FA2 /* DataModel.xcdatamodeld */; };
+		547651C12203956400E46FA2 /* CategoryListVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547651C02203956400E46FA2 /* CategoryListVC.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,8 +24,8 @@
 		5426B30221FF5A0C001C0758 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5426B30521FF5A0C001C0758 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		5426B30721FF5A0C001C0758 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		54C39E7A21FF964400C77483 /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
-		54C39E7E21FFA61A00C77483 /* DataHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataHandler.swift; sourceTree = "<group>"; };
+		547651BC220352F600E46FA2 /* DataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = DataModel.xcdatamodel; sourceTree = "<group>"; };
+		547651C02203956400E46FA2 /* CategoryListVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryListVC.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,6 +72,7 @@
 			isa = PBXGroup;
 			children = (
 				5426B2FD21FF5A0C001C0758 /* TodoListVC.swift */,
+				547651C02203956400E46FA2 /* CategoryListVC.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -87,8 +88,7 @@
 		54C39E7C21FF964B00C77483 /* Data Model */ = {
 			isa = PBXGroup;
 			children = (
-				54C39E7A21FF964400C77483 /* Item.swift */,
-				54C39E7E21FFA61A00C77483 /* DataHandler.swift */,
+				547651BB220352F600E46FA2 /* DataModel.xcdatamodeld */,
 			);
 			path = "Data Model";
 			sourceTree = "<group>";
@@ -173,9 +173,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				54C39E7F21FFA61A00C77483 /* DataHandler.swift in Sources */,
+				547651BD220352F600E46FA2 /* DataModel.xcdatamodeld in Sources */,
 				5426B2FE21FF5A0C001C0758 /* TodoListVC.swift in Sources */,
-				54C39E7B21FF964400C77483 /* Item.swift in Sources */,
+				547651C12203956400E46FA2 /* CategoryListVC.swift in Sources */,
 				5426B2FC21FF5A0C001C0758 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -376,6 +376,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		547651BB220352F600E46FA2 /* DataModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				547651BC220352F600E46FA2 /* DataModel.xcdatamodel */,
+			);
+			currentVersion = 547651BC220352F600E46FA2 /* DataModel.xcdatamodel */;
+			path = DataModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 5426B2F021FF5A0B001C0758 /* Project object */;
 }
