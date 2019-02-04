@@ -7,17 +7,15 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class TodoListVC: UIViewController {
     
     //MARK: - Properties
-    var itemArray = [Item]()
+    var itemArray: Results<Item>?
     var category: Category?
-    let defaults = UserDefaults()
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    
-    
+     let realm = try! Realm()
+
     //MARK: - IBOutlets
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var searchBar: UISearchBar!
@@ -31,10 +29,8 @@ class TodoListVC: UIViewController {
         self.title = category?.name
         self.setupTableView()
         self.setupSearchBar()
-        
-        
-        
-        self.loadItems(isFiltered: false)
+
+        self.loadItems()
     }
     
     //MARK: - Methods
@@ -49,36 +45,26 @@ class TodoListVC: UIViewController {
     }
     
     /**
-     This method load items from Sqlite DB using CoreData.
+     This method load items from Realm DB.
      */
-    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest(), isFiltered: Bool){
+    func loadItems(){
         
-        if !isFiltered{
-            let predicate = NSPredicate(format: "parentCategory.name MATCHES %@", (category?.name)!)
-            request.predicate = predicate
-        }
-        
-        do{
-            itemArray = try context.fetch(request)
-            
-        }catch {
-            print("Error fetching context! ", error)
-        }
-        
+        itemArray = self.category?.items.sorted(byKeyPath: "title", ascending: true)
         self.tableView.reloadData()
     }
     
     /**
-     This method save items to SQLite DB using CoreData.
+     This method save items to Realm DB.
      - Parameter items: A list of items to be saved.
      */
-    func saveItems(){
-        //Path for Sqlite DB.
-        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first) //library/ApplicationSupport
+    func save(item: Item){
+        
         do {
-            try context.save()
+            try realm.write {
+                category?.items.append(item)
+            }
         } catch {
-            print("Error saving context! ", error)
+            print("Error saving realm object! ", error)
         }
         
     }
@@ -93,14 +79,17 @@ class TodoListVC: UIViewController {
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
             
             //What will happen once the user clicks the add button
-            let newItem = Item(context: self.context)
+            
+            if let category = self.category{
+                
+            let newItem = Item()
             newItem.title = textField.text ?? ""
             newItem.done = false
-            newItem.parentCategory = self.category
-            
-            self.itemArray.append(newItem)
-            self.saveItems()
+            newItem.createDate = Date()
+                
+            self.save(item: newItem)
             self.tableView.reloadData()
+            }
         }
         
         alert.addTextField { (alertTextField) in
@@ -116,17 +105,18 @@ class TodoListVC: UIViewController {
 //MARK: - Tableview Delegate and DataSource
 extension TodoListVC: UITableViewDelegate, UITableViewDataSource{
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return itemArray.count
+        return itemArray?.count ?? 1
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TodoItemCell", for: indexPath)
         
-        let item = itemArray[indexPath.row]
-        
-        cell.textLabel?.text = item.title
-        
-        cell.accessoryType = item.done ? .checkmark : .none
+        if let item = itemArray?[indexPath.row]{
+            cell.textLabel?.text = item.title
+            cell.accessoryType = item.done ? .checkmark : .none
+        }else{
+            cell.textLabel?.text = "No items added."
+        }
         
         return cell
     }
@@ -134,10 +124,17 @@ extension TodoListVC: UITableViewDelegate, UITableViewDataSource{
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         tableView.deselectRow(at: indexPath, animated: true)
-        itemArray[indexPath.row].done = !itemArray[indexPath.row].done
+        if let item = itemArray?[indexPath.row]{
+            do{
+            try? realm.write {
+                 item.done = !item.done
+            }
+            }catch{
+                print("error in updating item.")
+            }
+           
+        }
         self.tableView.reloadData()
-        
-        self.saveItems()
     }
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
@@ -148,12 +145,11 @@ extension TodoListVC: UITableViewDelegate, UITableViewDataSource{
         if (editingStyle == .delete) {
             // handle delete (by removing the data from your array and updating the tableview)
             print("Deleted")
-            
-            self.context.delete(self.itemArray[indexPath.row])
-            self.itemArray.remove(at: indexPath.row)
-            self.tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
+
+            if let item = itemArray?[indexPath.row]{
+                RealmDB.delete(object: item)
+            }
             self.tableView.reloadData()
-            self.saveItems()
             
             
         }
@@ -169,35 +165,23 @@ extension TodoListVC: UITableViewDelegate, UITableViewDataSource{
 extension TodoListVC: UISearchBarDelegate{
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        let request: NSFetchRequest<Item> = Item.fetchRequest()
-        /**
-         In order to make a query we need NSPredicate, Predicate is basically a foundation class that specifies how data should be fetched or filtered.
-         It's essentially a query language like some sort of mix bettween SQL Where clause and a regex (Regular expression)
-         we add [cd] -> Non sensitive , non diaritics
-         */
         
-        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", (category?.name)!)
-        let itemsPredicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        //itemArray = itemArray?.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "title", ascending: true)
         
-        let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, itemsPredicate])
+        itemArray = itemArray?.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "createDate", ascending: true)
         
-        request.predicate = compoundPredicate
-        request.sortDescriptors = [ NSSortDescriptor(key: "title", ascending: true) ]
-        
-        self.loadItems(with: request, isFiltered: true)
+        tableView.reloadData()
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         
         if searchBar.text?.count == 0{
-            self.loadItems(isFiltered: false)
-            
-            //In order to give a high periority to the search bar in the main thread 
+            self.loadItems()
+            //In order to give a high periority to the search bar in the main thread
             DispatchQueue.main.async {
                 self.searchBar.resignFirstResponder()
             }
         }
-        
     }
     
 }
